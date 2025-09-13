@@ -1,99 +1,100 @@
-#include <stdio.h>
+// Projeto Xadrez - Trabalho de Faculdade
+// Autor: Cambruzzi
+// Data: 10/09/2025
 
-#define TAMANHO_TABULEIRO 8
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TAM 8
+
+// Tabuleiro global
+char tabuleiro[TAM][TAM];
+
+// Função para iniciar o tabuleiro com as peças na posição inicial
+void iniciarTabuleiro() {
+    char pecasIniciais[8] = {'T','C','B','Q','K','B','C','T'};
+
+    // Preenche peças pretas (maiúsculas)
+    for (int i = 0; i < TAM; i++) {
+        tabuleiro[0][i] = pecasIniciais[i];
+        tabuleiro[1][i] = 'P';
+    }
+
+    // Espaços vazios
+    for (int i = 2; i < 6; i++) {
+        for (int j = 0; j < TAM; j++) {
+            tabuleiro[i][j] = '.';
+        }
+    }
+
+    // Peças brancas (minúsculas)
+    for (int i = 0; i < TAM; i++) {
+        tabuleiro[6][i] = 'p';
+        tabuleiro[7][i] = pecasIniciais[i] + 32; // converte para minúsculo
+    }
+}
 
 // Função para imprimir o tabuleiro
-void imprimirTabuleiro(char tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
-    int i, j;
-    printf("  A B C D E F G H\n");
-    for (i = 0; i < TAMANHO_TABULEIRO; i++) {
-        printf("%d ", i + 1);
-        for (j = 0; j < TAMANHO_TABULEIRO; j++) {
+void imprimirTabuleiro() {
+    printf("\n   a b c d e f g h\n");
+    for (int i = 0; i < TAM; i++) {
+        printf("%d  ", 8 - i); // numeração das linhas
+        for (int j = 0; j < TAM; j++) {
             printf("%c ", tabuleiro[i][j]);
         }
-        printf("\n");
+        printf(" %d\n", 8 - i);
     }
-    printf("\n");
+    printf("   a b c d e f g h\n\n");
 }
 
-// Função recursiva para o Bispo
-void moverBispoRecursivo(int linha, int coluna, int deltaLinha, int deltaColuna) {
-    int novaLinha = linha + deltaLinha;
-    int novaColuna = coluna + deltaColuna;
+// Converte coordenadas (ex: "e2") em índices da matriz
+int converterCoordenada(char coluna, char linha, int *x, int *y) {
+    if (coluna < 'a' || coluna > 'h' || linha < '1' || linha > '8')
+        return 0;
 
-    // Verifica limites do tabuleiro
-    if (novaLinha < 0 || novaLinha >= TAMANHO_TABULEIRO ||
-        novaColuna < 0 || novaColuna >= TAMANHO_TABULEIRO)
+    *y = coluna - 'a';         // coluna -> índice
+    *x = 8 - (linha - '0');    // linha -> índice
+    return 1;
+}
+
+// Função para mover uma peça (sem validar regras ainda)
+void moverPeca(char origemCol, char origemLin, char destCol, char destLin) {
+    int x1, y1, x2, y2;
+
+    if (!converterCoordenada(origemCol, origemLin, &x1, &y1) ||
+        !converterCoordenada(destCol, destLin, &x2, &y2)) {
+        printf("Coordenadas inválidas!\n");
         return;
-
-    printf("-> (%c, %d)\n", 'A' + novaColuna, novaLinha + 1);
-
-    // Chamada recursiva
-    moverBispoRecursivo(novaLinha, novaColuna, deltaLinha, deltaColuna);
-}
-
-void moverBispo(int linha, int coluna) {
-    printf("Movimentos validos do Bispo (recursivo) a partir de (%c, %d):\n", 'A' + coluna, linha + 1);
-    moverBispoRecursivo(linha, coluna, -1, 1);  // diagonal superior direita
-    moverBispoRecursivo(linha, coluna, -1, -1); // diagonal superior esquerda
-    moverBispoRecursivo(linha, coluna, 1, 1);   // diagonal inferior direita
-    moverBispoRecursivo(linha, coluna, 1, -1);  // diagonal inferior esquerda
-    printf("\n");
-}
-
-// Movimento do Cavalo com continue e break
-void moverCavalo(int linha, int coluna) {
-    printf("Movimentos validos do Cavalo (loops avançados) a partir de (%c, %d):\n", 'A' + coluna, linha + 1);
-
-    int movimentos[8][2] = {
-        {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-        {1, -2}, {1, 2}, {2, -1}, {2, 1}
-    };
-
-    int i;
-    for (i = 0; i < 8; i++) {
-        int novaLinha = linha + movimentos[i][0];
-        int novaColuna = coluna + movimentos[i][1];
-
-        // Ignora movimentos fora do tabuleiro
-        if (novaLinha < 0 || novaLinha >= TAMANHO_TABULEIRO ||
-            novaColuna < 0 || novaColuna >= TAMANHO_TABULEIRO)
-            continue;
-
-        printf("-> (%c, %d)\n", 'A' + novaColuna, novaLinha + 1);
-
-        // Exemplo de break: para se atingir primeira coluna
-        if (novaColuna == 0) {
-            printf("Cavalo atingiu primeira coluna, break.\n");
-            break;
-        }
     }
 
-    printf("\n");
+    char peca = tabuleiro[x1][y1];
+    if (peca == '.') {
+        printf("Não há peça na posição de origem!\n");
+        return;
+    }
+
+    // Executa o movimento
+    tabuleiro[x2][y2] = peca;
+    tabuleiro[x1][y1] = '.';
+    printf("Movimento realizado!\n");
 }
 
 int main() {
-    char tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
-    int i, j;
+    iniciarTabuleiro();
+    imprimirTabuleiro();
 
-    // Inicializa o tabuleiro com espaços
-    for (i = 0; i < TAMANHO_TABULEIRO; i++)
-        for (j = 0; j < TAMANHO_TABULEIRO; j++)
-            tabuleiro[i][j] = ' ';
+    char oCol, oLin, dCol, dLin;
 
-    // Posições das peças
-    int posBispo[2] = {4, 3}; // E5
-    int posCavalo[2] = {4, 4}; // E5
+    while (1) {
+        printf("Digite a jogada (ex: e2 e4) ou 0 para sair: ");
+        scanf(" %c", &oCol);
+        if (oCol == '0') break; // sair do jogo
+        scanf("%c %c%c", &oLin, &dCol, &dLin);
 
-    // Coloca peças no tabuleiro
-    tabuleiro[posBispo[0]][posBispo[1]] = 'B';
-    tabuleiro[posCavalo[0]][posCavalo[1]] = 'C';
-
-    printf("=== Desafio de Xadrez - MateCheck (Mestre) ===\n");
-    imprimirTabuleiro(tabuleiro);
-
-    moverBispo(posBispo[0], posBispo[1]);
-    moverCavalo(posCavalo[0], posCavalo[1]);
+        moverPeca(oCol, oLin, dCol, dLin);
+        imprimirTabuleiro();
+    }
 
     return 0;
 }
